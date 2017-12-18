@@ -6,7 +6,7 @@ import re
 import random
 import datetime
 import csv
-from urllib import urlopen
+from urllib.request import urlopen
 import pymysql
 from bs4 import BeautifulSoup
 
@@ -19,8 +19,8 @@ def main(url):
     ''' Main function to run'''
     get_random_link(url)
 
-    print 'No. internal links in site {0}'.format(len(INTERNAL_PAGES))
-    print 'No. internal links in site {0}'.format(len(EXTERNAL_PAGES))
+    print('No. internal links in site {0}'.format(len(INTERNAL_PAGES)))
+    print('No. external links in site {0}'.format(len(EXTERNAL_PAGES)))
     to_db('demo', 'internal_links', INTERNAL_PAGES)
     to_db('demo', 'external_links', EXTERNAL_PAGES)
     #to_csv(INTERNAL_PAGES, 'internal_links')
@@ -49,7 +49,7 @@ def get_internal_links(url):
     internal_links = []
     splited_url = split_url(url)
     html = urlopen(url)
-    bs_obj = BeautifulSoup(html, 'lxml')
+    bs_obj = BeautifulSoup(html, 'html.parser')
 
     links = bs_obj.find_all('a', href=re.compile("^(/|.*"+splited_url+")"))
 
@@ -65,7 +65,7 @@ def get_external_links(url):
     external_links = []
     splited_url = split_url(url)
     html = urlopen(url)
-    bs_obj = BeautifulSoup(html, 'lxml')
+    bs_obj = BeautifulSoup(html, 'html.parser')
 
     links = bs_obj.find_all("a", href=re.compile("^(http|www)((?!"+splited_url+").)*$"))
 
@@ -81,8 +81,8 @@ def get_random_link(url):
     Then go to another page and repeat the function recursively '''
     external_links = get_external_links(url)
     internal_links = get_internal_links(url)
-    print 'No. of internal link in this page {0}'.format(len(internal_links))
-    print 'No. of external link in this page {0}'.format(len(external_links))
+    print('No. of internal link in this page {0}'.format(len(internal_links)))
+    print('No. of external link in this page {0}'.format(len(external_links)))
 
     added_internal_links = 0
     for internal_link in internal_links:
@@ -90,7 +90,7 @@ def get_random_link(url):
         if internal_addition:
             added_internal_links += 1
 
-    print "Added {0} Internal Links".format(added_internal_links)
+    print("Added {0} Internal Links".format(added_internal_links))
 
     added_external_links = 0
     for external_link in external_links:
@@ -98,11 +98,11 @@ def get_random_link(url):
         if external_addition:
             added_external_links += 1
 
-    print "Added {0} External Links".format(added_external_links)
+    print("Added {0} External Links".format(added_external_links))
 
-    print 'Current Size of internal link {0}'.format(len(INTERNAL_PAGES))
-    print 'Current Size of enternal link {0}'.format(len(EXTERNAL_PAGES))
-    print "-" * 10
+    print('Current Size of internal link {0}'.format(len(INTERNAL_PAGES)))
+    print('Current Size of enternal link {0}'.format(len(EXTERNAL_PAGES)))
+    print("-" * 10)
 
     # Go to a random internal link if there's a link
     length = len(internal_links)
@@ -112,7 +112,7 @@ def get_random_link(url):
         return
 
     # Call the function recursively
-    print 'Now visiting {0}'.format(random_link)
+    print('Now visiting {0}'.format(random_link))
     get_random_link(random_link)
 
 def to_csv(items, filename):
@@ -132,20 +132,18 @@ def to_csv(items, filename):
 def to_db(db_name, row, items, user='root', pswd=None):
     ''' Sends the items to the database '''
     item_list = list(items)
-    conn = pymysql.connect(host='127.0.0.1', unix_socket='/tmp/mysql.sock',
-                               user=user, passwd=pswd, db=db_name, charset='utf8')
+    conn = pymysql.connect(host='127.0.0.1',
+                           user=user, passwd=pswd, db=db_name, charset='utf8')
     cur = conn.cursor()
     try:
         cur.execute("USE demo")
         for link in item_list:
-            cur.execute("INSERT INTO links ({0}) VALUES ({1})".format(row, link))
+            cur.execute('INSERT INTO links ({0}) VALUES ("{1}")'.format(row, link))
             cur.connection.commit()
+            print('Content Added to database')
     finally:
         cur.close()
         conn.close()
-
-
-
 
 if __name__ == '__main__':
     main('http://localhost/wp-2/')
