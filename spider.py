@@ -7,12 +7,24 @@ import random
 import datetime
 import csv
 from urllib import urlopen
+import pymysql
 from bs4 import BeautifulSoup
 
 INTERNAL_PAGES = set()
 EXTERNAL_PAGES = set()
 
 random.seed(datetime.datetime.now())
+
+def main(url):
+    ''' Main function to run'''
+    get_random_link(url)
+
+    print 'No. internal links in site {0}'.format(len(INTERNAL_PAGES))
+    print 'No. internal links in site {0}'.format(len(EXTERNAL_PAGES))
+    to_db('demo', 'internal_links', INTERNAL_PAGES)
+    to_db('demo', 'external_links', EXTERNAL_PAGES)
+    #to_csv(INTERNAL_PAGES, 'internal_links')
+    #to_csv(EXTERNAL_PAGES, 'external_links')
 
 def add_to_set(func_set, value):
     ''' Adds an item to a set and return a boolean if it was added'''
@@ -117,11 +129,23 @@ def to_csv(items, filename):
     finally:
         csv_file.close()
 
-URL = 'http://localhost/wp-2/'
-get_random_link(URL)
+def to_db(db_name, row, items, user='root', pswd=None):
+    ''' Sends the items to the database '''
+    item_list = list(items)
+    conn = pymysql.connect(host='127.0.0.1', unix_socket='/tmp/mysql.sock',
+                               user=user, passwd=pswd, db=db_name, charset='utf8')
+    cur = conn.cursor()
+    try:
+        cur.execute("USE demo")
+        for link in item_list:
+            cur.execute("INSERT INTO links ({0}) VALUES ({1})".format(row, link))
+            cur.connection.commit()
+    finally:
+        cur.close()
+        conn.close()
 
-print 'No. internal links in site {0}'.format(len(INTERNAL_PAGES))
-print 'No. internal links in site {0}'.format(len(EXTERNAL_PAGES))
-print 'Now saving in csv file'
-to_csv(INTERNAL_PAGES, 'internal_links')
-to_csv(EXTERNAL_PAGES, 'external_links')
+
+
+
+if __name__ == '__main__':
+    main('http://localhost/wp-2/')
