@@ -21,10 +21,10 @@ def main(url):
 
     print('No. internal links in site {0}'.format(len(INTERNAL_PAGES)))
     print('No. external links in site {0}'.format(len(EXTERNAL_PAGES)))
-    to_db('demo', 'internal_links', INTERNAL_PAGES)
-    to_db('demo', 'external_links', EXTERNAL_PAGES)
-    #to_csv(INTERNAL_PAGES, 'internal_links')
-    #to_csv(EXTERNAL_PAGES, 'external_links')
+    #to_db('demo', 'internal_links', INTERNAL_PAGES)
+    #to_db('demo', 'external_links', EXTERNAL_PAGES)
+    to_csv(INTERNAL_PAGES, 'internal_links')
+    to_csv(EXTERNAL_PAGES, 'external_links')
 
 def add_to_set(func_set, value):
     ''' Adds an item to a set and return a boolean if it was added'''
@@ -146,4 +146,4 @@ def to_db(db_name, row, items, user='root', pswd=None):
         conn.close()
 
 if __name__ == '__main__':
-    main('http://localhost/wp-2/')
+    main('http://localhost/wp-1/')
